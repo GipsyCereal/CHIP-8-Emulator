@@ -1,10 +1,13 @@
 #pragma once
 #include <iostream>
+#include <SDL.h>
+namespace InstructionLib { class OpcodeManager; }
+class InstructionLib::OpcodeManager;
 class VirtualMachine
 {
-
+	struct Vector2 { float width, height; };
 public:
-	VirtualMachine();
+	VirtualMachine(const int& widthScale , const int& heightScale);
 	~VirtualMachine();
 	//cpy ctr
 	VirtualMachine(const VirtualMachine& old) = delete;
@@ -13,31 +16,41 @@ public:
 	VirtualMachine& operator=(const VirtualMachine& other) = delete;
 	VirtualMachine& operator=(const VirtualMachine&& other) = delete;
 
+	void LoadROM(const std::string& path);
+	void ClearScreen();
+	void Update(const float elapsedSec);
+	bool ProcessInput();
 
-private:
-
-	//ScreenSize (native 64 x 32)
-	const uint16_t m_ScreenWidth;
-	const uint16_t m_ScreenHeight;
-	//monochrome --> pixel has 0 or 1 state
 	const static uint16_t m_TotalPixelCount{ 0x800 };
-	bool m_PixelArray[m_TotalPixelCount];
+	//monochrome --> pixel has 0 or 1 state
+	int m_PixelArray[m_TotalPixelCount];
 
-	const static uint16_t m_MemSize{ 0xFFF };
-	uint8_t m_Memory[m_MemSize];
-	//Most CHIP-8 programs start at location 0x200, everything below is for interpreter
-	const uint8_t m_ProgramMemStart{ 0x200 };
+	uint8_t GetSP() const { return m_SP; }
+	void SetSP(const uint8_t sp) { m_SP = sp; }
+	void DecrementSP() { --m_SP; }
+	void IncrementSP() { ++m_SP; }
+
+	uint16_t GetPC() const { return m_PC; }
+	void SetPC(const uint16_t& memAddress) { m_PC = memAddress; }
+	void IncrementPCByTwo() { m_PC += 2; }
+	void DecrementPCByTwo() { m_PC -= 2; }
+
+	//used to store the address that the interpreter shoud return to when finished with a subroutine. Chip-8 allows for up to 16 levels of nested subroutines.
+	uint16_t m_Stack[16];
 
 	//REGISTERS
-	const static uint16_t m_RegistersAmount{ 0xFFF };
 	//general purpose registers 0 to F
 	uint8_t m_Vx[16];
 	//used to store memory addresses
-	uint8_t m_Vi;
-	//Program counter, holds currently executed address
-	uint16_t m_PC;
-	//Stack pointer, points to upmost level of the stack
-	uint8_t m_SP;
+	uint16_t m_Vi;
+
+	const static uint16_t m_MemSize{ 0x1000 };
+	uint8_t m_Memory[m_MemSize];
+
+	Vector2 m_ScreenDimensions;
+
+	//INPUT
+	uint8_t m_Input[16];
 
 	//special purpose sound and time registers
 	//delay timer register
@@ -45,12 +58,34 @@ private:
 	//sound timer register
 	uint8_t m_ST;
 
-	//used to store the address that the interpreter shoud return to when finished with a subroutine. Chip-8 allows for up to 16 levels of nested subroutines.
-	uint16_t m_Stack[16];
+	//Stack pointer, points to upmost level of the stack
+	uint8_t m_SP;
 
-	
+	bool m_IsPaused;
 
-	//INPUT
-	uint8_t m_Input[16];
+
+	void PrintDisplay() const;
+private:
+	//METHODS
+	void Init(const int& widthScale, const int& heightScale);
+	void InitSDL(const int& widthScale, const int& heightScale);
+	void InitFont();
+
+	void UpdateApp(const float elapsedSec);
+	//ScreenSize (native 64 x 32)
+	const uint16_t m_TextureWidth;
+	const uint16_t m_TextureHeight;
+	//Most CHIP-8 programs start at location 0x200, everything below is for interpreter
+	const uint16_t m_ProgramMemStart{ 0x200 };
+
+	//Program counter, holds currently executed address
+	uint16_t m_PC;
+
+	InstructionLib::OpcodeManager* m_pOpcodeManager;
+
+	//SDL
+	SDL_Window* m_Window;
+	SDL_Renderer* m_Renderer;
+	SDL_Texture* m_Texture;
 };
 

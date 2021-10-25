@@ -1,11 +1,28 @@
 // CHIP-8-Emulator.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#include "VirtualMachine.h"
 #include <iostream>
-
-int main()
+#include <SDL.h>
+#include <chrono>
+int main(int argc, char* argv[])
 {
-    std::cout << "Hello World!\n";
+	VirtualMachine* pVM = new VirtualMachine(10,10);
+	pVM->ClearScreen();
+	bool quit = false;
+
+	pVM->LoadROM("../Roms/brix.rom");
+	while (!quit)
+	{
+		float elapsedSec = 0.f;
+		auto t_start = std::chrono::high_resolution_clock::now();
+		quit = pVM->ProcessInput();
+		pVM->Update(elapsedSec);
+		auto t_end = std::chrono::high_resolution_clock::now();
+		elapsedSec = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+	}
+	delete pVM;
+	pVM = nullptr;
+	return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
