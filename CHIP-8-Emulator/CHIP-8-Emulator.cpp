@@ -6,7 +6,7 @@
 #include <chrono>
 int main(int argc, char* argv[])
 {
-	VirtualMachine* pVM = new VirtualMachine(10,10);
+	VirtualMachine* pVM = new VirtualMachine(12,12);
 	pVM->ClearScreen();
 	bool quit = false;
 

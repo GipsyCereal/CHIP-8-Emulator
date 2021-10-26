@@ -212,15 +212,16 @@ void VirtualMachine::ClearScreen()
 	//Clear everything from prev frame render
 	SDL_RenderClear(m_Renderer);
 	SDL_RenderPresent(m_Renderer);
+	SDL_SetRenderDrawColor(m_Renderer, 1, 1, 1, 1);
 
 }
 void VirtualMachine::Update(const float elapsedSec)
 {
 	UpdateApp(elapsedSec);
 	int pitch = m_TextureWidth * sizeof(uint32_t);
-
-	SDL_UpdateTexture(m_Texture, nullptr, m_PixelArray, pitch);
+	SDL_UpdateTexture(m_Texture, nullptr, &m_PixelArray, pitch);
 	//copy this frame texture into renderer
+	SDL_RenderClear(m_Renderer);
 	SDL_RenderCopy(m_Renderer, m_Texture, nullptr, nullptr);
 	//present renderer
 	SDL_RenderPresent(m_Renderer);
@@ -421,29 +422,4 @@ bool VirtualMachine::ProcessInput()
 	}
 
 	return quit;
-}
-
-
-
-
-void VirtualMachine::PrintDisplay() const
-{
-	std::stringstream stream;
-
-	auto NrOfPixels = m_TextureWidth * m_TextureHeight;
-	for (int i = 0; i < NrOfPixels; ++i)
-	{
-		if (i % m_TextureWidth == 0)
-			stream << "\n";
-
-		char toPrint = m_PixelArray[i] == 1 ? '#' : ' ';
-		stream << toPrint;
-
-	}
-
-	stream << std::endl;
-
-	system("cls");
-	std::string test = stream.str();
-	std::cout << test;
 }

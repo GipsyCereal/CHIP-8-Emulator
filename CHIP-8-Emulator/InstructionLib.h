@@ -68,15 +68,14 @@ namespace InstructionLib
 		std::vector<Opcode> m_Instructions;
 		void Instruction00E0(VirtualMachine& vm, const uint16_t& instruction)
 		{
-			for (uint16_t i = 0; i < vm.m_TotalPixelCount; i++)
-			{
-				vm.m_PixelArray[i] = 0;
-			}
+			//sets all values in array to 0 (spatial locality memory)
+			std::memset(vm.m_PixelArray, 0, sizeof(uint32_t));	
 		}
 
 		void Instruction00EE(VirtualMachine& vm, const uint16_t& instruction)
 		{
-			vm.SetPC(vm.m_Stack[--vm.m_SP]);
+			vm.SetPC(vm.m_Stack[vm.GetSP()]);
+			vm.DecrementSP();
 		}
 		//jump to address NNN
 		void Instruction1NNN(VirtualMachine& vm, const uint16_t& instruction)
@@ -299,10 +298,14 @@ namespace InstructionLib
 			//Sprites are XORed onto the existing screen. If this causes any pixels to be erased,
 			//VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display,
 			//it wraps around to the opposite side of the screen.
+			const uint32_t textureWidth = 64;
 			uint8_t xCoord = GetX(instruction);
-			xCoord = vm.m_Vx[xCoord] % 64; //64 pix total width
+			xCoord = vm.m_Vx[xCoord] % textureWidth; //64 pix total width
+
 			uint8_t yCoord = GetY(instruction);
-			yCoord = vm.m_Vx[yCoord] % 32; //32 pix total height
+			const uint32_t textureHeight = 32;
+			yCoord = vm.m_Vx[yCoord] % textureHeight; //32 pix total height
+
 			const uint8_t width = 8;
 			bool collisionFlag = false;
 
@@ -315,8 +318,10 @@ namespace InstructionLib
 					const uint8_t value = vm.m_Memory[address + currRow];
 
 					// Create mask to see if bit is on in the current column
-					const uint32_t mask = (0b10000000 >> currCol);
-					const bool isPixelActive = (value & mask) > 0;
+					const uint32_t mask = (((0xFF + 1) >> 1) >> currCol);
+					//e.g. 224 == 1110 0000 --> 128 == 0100 0000 ==> true 32 == 0001 0000 ==> false
+					const bool isPixelActive = (value & mask);
+
 
 					if (!isPixelActive)
 						continue;
@@ -330,12 +335,12 @@ namespace InstructionLib
 					//  xor pixel onto the display if true
 					if (vm.m_PixelArray[relativeIdx])
 					{
-						vm.m_PixelArray[relativeIdx] = 0;
 						collisionFlag = true;
+						vm.m_PixelArray[relativeIdx] = !collisionFlag;
 						continue;
 					}
 
-					vm.m_PixelArray[relativeIdx] = true;
+					vm.m_PixelArray[relativeIdx] = 0xFFFFFFFF;
 				}
 			}
 

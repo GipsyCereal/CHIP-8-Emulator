@@ -23,7 +23,7 @@ public:
 
 	const static uint16_t m_TotalPixelCount{ 0x800 };
 	//monochrome --> pixel has 0 or 1 state
-	int m_PixelArray[m_TotalPixelCount];
+	uint32_t m_PixelArray[m_TotalPixelCount];
 
 	uint8_t GetSP() const { return m_SP; }
 	void SetSP(const uint8_t sp) { m_SP = sp; }
