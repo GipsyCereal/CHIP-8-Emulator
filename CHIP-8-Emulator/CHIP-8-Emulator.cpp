@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 	VirtualMachine* pVM = new VirtualMachine(12,12);
 	pVM->ClearScreen();
 	bool quit = false;
-
+	int ticks = 6;
 	pVM->LoadROM("../Roms/brix.rom");
 	while (!quit)
 	{
@@ -19,6 +19,8 @@ int main(int argc, char* argv[])
 		pVM->Update(elapsedSec);
 		auto t_end = std::chrono::high_resolution_clock::now();
 		elapsedSec = std::chrono::duration<float, std::milli>(t_end - t_start).count();
+		if(!quit)
+			SDL_Delay(float(100)/ticks);
 	}
 	delete pVM;
 	pVM = nullptr;

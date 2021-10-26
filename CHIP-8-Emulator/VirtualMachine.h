@@ -62,9 +62,6 @@ public:
 	uint8_t m_SP;
 
 	bool m_IsPaused;
-
-
-	void PrintDisplay() const;
 private:
 	//METHODS
 	void Init(const int& widthScale, const int& heightScale);

@@ -171,12 +171,8 @@ void VirtualMachine::UpdateApp(const float elapsedSec)
 	// Construct opcode from the 2 bytes divided over PC and PC + 1
 	//shift left cuz higher order
 	const uint16_t opcode = (m_Memory[m_PC] << 8u) | m_Memory[m_PC + 1];
-
 	m_PC += 2;
-
 	m_pOpcodeManager->ExecuteOpcode(*this, opcode);
-
-	PrintDisplay();
 
 }
 
